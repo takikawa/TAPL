@@ -1,10 +1,11 @@
 #lang scheme
 
+(require "ast.ss")
 (require "error.ss")
 (require "parser.ss")
 
 (require schemeunit)
-(require schemeunit/gui) 
+(require schemeunit/gui)
 
 (provide/contract
  [relabel (-> exp? exp?)]

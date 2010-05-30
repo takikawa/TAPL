@@ -1,5 +1,6 @@
 #lang scheme
 
+(require "ast.ss")
 (require "error.ss")
 
 (require parser-tools/lex)
@@ -9,40 +10,11 @@
 (require schemeunit)
 (require schemeunit/gui)
 
-;; parser and AST data definitions
-;;
-;; the grammar of this language is basically
-;; exp ::= lambda | arithmetic | variable | values | application
-;; values ::= nat | bool (defined in the obvious ways)
-;; arithmetic ::= (exp + exp) | (exp - exp)
-;; lambda ::= λ string exp
-;; application ::= (exp exp) 
-;;
-(define-struct exp ()                           #:transparent)
-(define-struct (value-exp exp) ()               #:transparent)
-(define-struct (lam-exp value-exp) (var body)   #:transparent)
-(define-struct (arith-exp exp) (op rand1 rand2) #:transparent)
-(define-struct (appl-exp exp) (e1 e2)           #:transparent)
-(define-struct (var-exp exp) (name)             #:transparent)
-(define-struct (num-exp value-exp) (val)        #:transparent)
-(define-struct (true-exp value-exp) ()          #:transparent)
-(define-struct (false-exp value-exp) ()         #:transparent)
-
 (provide/contract 
  [create-lexer (-> input-port? (-> (or/c symbol? token?)))]
  [parse        (-> (-> (or/c symbol? token?)) exp?)])
 
 (provide run-parser-tests)
-
-(provide (struct-out exp) 
-         (struct-out value-exp)
-         (struct-out lam-exp) 
-         (struct-out arith-exp)
-         (struct-out appl-exp) 
-         (struct-out var-exp)
-         (struct-out num-exp)
-         (struct-out true-exp)
-         (struct-out false-exp))
 
 ;; define tokens for lambda language
 (define-tokens lam-var-toks
@@ -82,7 +54,7 @@
 (define (lex input)
   (let ([result (lex-once input)])
     (if (eq? (token-name result) 'end)
-        empty
+        null
         (cons result (lex input)))))
 
 ;; parse : (-> token?) -> exp?

@@ -1,5 +1,6 @@
 #lang scheme
 
+(require "ast.ss")
 (require "error.ss")
 (require "eval.ss")
 (require "parser.ss")
