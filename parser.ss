@@ -97,8 +97,8 @@
              [(bool-exp) $1]
              [(appl-exp) $1])
             (lam-exp
-             [(lam var exp)
-              (make-lam-exp $2 $3)])
+             [(lpar lam var exp rpar)
+              (make-lam-exp $3 $4)])
             (arith-exp
              [(lpar exp plus exp rpar)
               (make-arith-exp 'plus $2 $4)]
@@ -168,11 +168,11 @@
                   (make-num-exp 5)))
    (test-case
     "Lambda expression"
-    (check-equal? (test-parse "lambda x (1 + x)")
+    (check-equal? (test-parse "(lambda x (1 + x))")
                   lam-ex))
    (test-case
     "Application"
-    (check-equal? (test-parse "(lambda x (1 + x) 5)")
+    (check-equal? (test-parse "((lambda x (1 + x)) 5)")
                   (make-appl-exp lam-ex
                                  (make-num-exp 5))))))
 

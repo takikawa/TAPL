@@ -258,13 +258,13 @@
                (lambda () (test-eval "foobar"))))
    (test-case
     "Simple lambda with arithmetic"
-    (check-equal? (test-eval "(lambda x (x + 1) 5)")
+    (check-equal? (test-eval "((lambda x (x + 1)) 5)")
                   (make-num-exp 6)))
    (test-case
     "Lambda application with free variable"
     (check-exn test-free-var-exn
                (lambda () 
-                 (test-eval "(lambda x (y + 5) 5)"))))))
+                 (test-eval "((lambda x (y + 5)) 5)"))))))
 
 (define run-eval-tests
   (lambda () (test/gui renaming-tests
