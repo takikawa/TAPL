@@ -1,6 +1,7 @@
 #lang typed-scheme
 
 (provide
+ (struct-out def)
  (struct-out exp)
  (struct-out value-exp)
  (struct-out lam-exp)
@@ -14,12 +15,18 @@
 ;; parser and AST data definitions
 ;;
 ;; the grammar of this language is basically
+;; program ::= top-level program | eof
+;; top-level ::= exp | definition
+;; definition ::= var := exp
 ;; exp ::= lambda | arithmetic | variable | values | application
 ;; values ::= nat | bool (defined in the obvious ways)
 ;; arithmetic ::= (exp + exp) | (exp - exp)
 ;; lambda ::= λ string exp
 ;; application ::= (exp exp) 
 ;;
+(define-struct: def ([var : String]
+                     [body : exp])
+  #:transparent)
 (define-struct: exp ()                           
   #:transparent)
 (define-struct: (value-exp exp) ()               

@@ -12,7 +12,7 @@
 
 (provide/contract 
  [create-lexer (-> input-port? (-> (or/c symbol? token?)))]
- [parse        (-> (-> (or/c symbol? token?)) exp?)])
+ [parse        (-> (-> (or/c symbol? token?)) (listof (or/c exp? def?)))])
 
 (provide run-parser-tests)
 
@@ -20,7 +20,7 @@
 (define-tokens lam-var-toks
   (var nat))
 (define-empty-tokens lam-toks
-  (lam plus minus true false lpar rpar end))
+  (lam plus minus true false lpar rpar def end))
 
 ;; lex-once : input-port -> token
 ;; takes a portion of input and produces the token matched
@@ -34,6 +34,7 @@
          ["false"  (token-false)]
          [#\(      (token-lpar)]
          [#\)      (token-rpar)]
+         [":="     (token-def)]
          [(:: alphabetic (:* (:or alphabetic digit)))
           (token-var lexeme)]
          [lex-numeric
@@ -57,17 +58,28 @@
         null
         (cons result (lex input)))))
 
-;; parse : (-> token?) -> exp?
+;; parse : (-> token?) -> (listof exp?)
 ;; parse the input and return an AST
 (define parse
   (parser 
-   (grammar (exp
+   (grammar (program
+             [(top-level)
+              (cons $1 null)]
+             [(top-level program)
+              (cons $1 $2)])
+            (top-level
+             [(exp) $1]
+             [(definition) $1])
+            (exp
              [(lam-exp) $1]
              [(arith-exp) $1]
              [(var) (make-var-exp $1)]
              [(nat) (make-num-exp $1)]
              [(bool-exp) $1]
              [(appl-exp) $1])
+            (definition
+              [(var def exp)
+               (make-def $1 $3)])
             (lam-exp
              [(lpar lam var exp rpar)
               (make-lam-exp $3 $4)])
@@ -85,7 +97,7 @@
    (tokens lam-toks lam-var-toks)
    (error (lambda (tok-ok? tok-name tok-value) 
             (raise-lam-error "Parsing failed on token"))) 
-   (start exp)
+   (start program)
    (end end)))
 
 ;; Test suites for parsing and lexing
@@ -109,7 +121,8 @@
   (check-equal? (lex-once (open-input-string "lambda")) (token-lam))
   (check-equal? (lex-once (open-input-string "true")) (token-true))
   (check-equal? (lex-once (open-input-string "false")) (token-false))
-  (check-equal? (lex-once (open-input-string "true false")) (token-true)))
+  (check-equal? (lex-once (open-input-string "true false")) (token-true))
+  (check-equal? (lex-once (open-input-string ":=")) (token-def)))
 
 ;; full lexing tests
 (define-test-suite full-lexing-tests
@@ -137,16 +150,16 @@
    (test-case
     "Number value"
     (check-equal? (test-parse "5")
-                  (make-num-exp 5)))
+                  (list (make-num-exp 5))))
    (test-case
     "Lambda expression"
     (check-equal? (test-parse "(lambda x (1 + x))")
-                  lam-ex))
+                  (list lam-ex)))
    (test-case
     "Application"
     (check-equal? (test-parse "((lambda x (1 + x)) 5)")
-                  (make-appl-exp lam-ex
-                                 (make-num-exp 5))))))
+                  (list (make-appl-exp lam-ex
+                                       (make-num-exp 5)))))))
 
 (define run-parser-tests
   (lambda () (test/gui simple-lexing-tests 
